@@ -6,11 +6,13 @@ from expense_api.exceptions import ExpenseNotFoundError
 from expense_api.models import ExpenseModel
 from expense_api.repositories.expense import (
     ExpenseCreateData,
+    ExpensePageResult,
     ExpenseRepository,
     ExpenseUpdateData,
 )
 from expense_api.schemas import (
     ExpenseCreateSchema,
+    ExpenseListQuerySchema,
     ExpensePatchUpdateSchema,
     ExpensePutUpdateSchema,
 )
@@ -36,8 +38,19 @@ class ExpenseService:
         }
         return self._repository.create(create_data)
 
-    def list_expenses(self) -> list[ExpenseModel]:
-        return self._repository.list()
+    def list_expenses(self, query: ExpenseListQuerySchema) -> ExpensePageResult:
+        return self._repository.list_page(
+            offset=query.offset,
+            limit=query.limit,
+            category=query.category,
+            currency=query.currency,
+            payment_method=query.payment_method,
+            merchant=query.merchant,
+            spent_from=query.spent_from,
+            spent_to=query.spent_to,
+            sort_by=query.sort_by,
+            sort_order=query.sort_order,
+        )
 
     def get_expense(self, expense_id: int) -> ExpenseModel:
         expense = self._repository.get_by_id(expense_id)

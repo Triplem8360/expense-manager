@@ -5,7 +5,14 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TypedDict
 
-from expense_api.models import ExpenseModel, PaymentMethod
+from expense_api.models import (
+    ExpenseModel,
+    ExpenseSortField,
+    PaymentMethod,
+    SortDirection,
+)
+
+type ExpensePageResult = tuple[list[ExpenseModel], int]
 
 
 class ExpenseCreateData(TypedDict):
@@ -53,6 +60,67 @@ class ExpenseRepository:
 
     def list(self) -> list[ExpenseModel]:
         return [self._expenses[expense_id] for expense_id in sorted(self._expenses)]
+
+    def list_page(
+        self,
+        *,
+        offset: int,
+        limit: int,
+        category: str | None = None,
+        currency: str | None = None,
+        payment_method: PaymentMethod | None = None,
+        merchant: str | None = None,
+        spent_from: datetime | None = None,
+        spent_to: datetime | None = None,
+        sort_by: ExpenseSortField = "spent_at",
+        sort_order: SortDirection = "desc",
+    ) -> ExpensePageResult:
+        expenses = self.list()
+
+        if category is not None:
+            category_filter = category.casefold()
+            expenses = [
+                expense
+                for expense in expenses
+                if expense.category.casefold() == category_filter
+            ]
+        if currency is not None:
+            expenses = [expense for expense in expenses if expense.currency == currency]
+        if payment_method is not None:
+            expenses = [
+                expense
+                for expense in expenses
+                if expense.payment_method is payment_method
+            ]
+        if merchant is not None:
+            merchant_filter = merchant.casefold()
+            expenses = [
+                expense
+                for expense in expenses
+                if expense.merchant is not None
+                and merchant_filter in expense.merchant.casefold()
+            ]
+        if spent_from is not None:
+            expenses = [
+                expense for expense in expenses if expense.spent_at >= spent_from
+            ]
+        if spent_to is not None:
+            expenses = [expense for expense in expenses if expense.spent_at <= spent_to]
+
+        reverse = sort_order == "desc"
+        if sort_by == "title":
+            expenses.sort(key=lambda expense: expense.title.casefold(), reverse=reverse)
+        elif sort_by == "amount":
+            expenses.sort(key=lambda expense: expense.amount, reverse=reverse)
+        elif sort_by == "created_at":
+            expenses.sort(key=lambda expense: expense.created_at, reverse=reverse)
+        elif sort_by == "updated_at":
+            expenses.sort(key=lambda expense: expense.updated_at, reverse=reverse)
+        else:
+            expenses.sort(key=lambda expense: expense.spent_at, reverse=reverse)
+
+        total = len(expenses)
+        return expenses[offset : offset + limit], total
 
     def get_by_id(self, expense_id: int) -> ExpenseModel | None:
         return self._expenses.get(expense_id)

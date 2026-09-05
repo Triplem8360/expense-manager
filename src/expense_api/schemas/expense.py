@@ -101,6 +101,9 @@ class ExpensePatchUpdateSchema(BaseModel):
 
     @model_validator(mode="after")
     def reject_null_for_required_fields(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("At least one field must be provided")
+
         null_fields = sorted(
             field_name
             for field_name in self._NON_NULLABLE_FIELDS
@@ -127,3 +130,10 @@ class ExpenseReadSchema(BaseModel):
     notes: Notes | None
     created_at: AwareDatetime
     updated_at: AwareDatetime
+
+
+class ExpensePageSchema(BaseModel):
+    items: list[ExpenseReadSchema]
+    total: Annotated[int, Field(ge=0)]
+    limit: Annotated[int, Field(ge=1, le=100)]
+    offset: Annotated[int, Field(ge=0)]

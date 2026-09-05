@@ -1,11 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Response, status
+from fastapi import APIRouter, Path, Query, Response, status
 
 from expense_api.api.dependencies import ExpenseServiceDependency
 from expense_api.models import ExpenseModel
 from expense_api.schemas import (
     ExpenseCreateSchema,
+    ExpenseListQuerySchema,
+    ExpensePageSchema,
     ExpensePatchUpdateSchema,
     ExpensePutUpdateSchema,
     ExpenseReadSchema,
@@ -29,13 +31,20 @@ async def create_expense(
 
 @router.get(
     "",
-    response_model=list[ExpenseReadSchema],
+    response_model=ExpensePageSchema,
     status_code=status.HTTP_200_OK,
 )
 async def list_expenses(
     service: ExpenseServiceDependency,
-) -> list[ExpenseModel]:
-    return service.list_expenses()
+    query: Annotated[ExpenseListQuerySchema, Query()],
+) -> ExpensePageSchema:
+    expenses, total = service.list_expenses(query)
+    return ExpensePageSchema(
+        items=[ExpenseReadSchema.model_validate(expense) for expense in expenses],
+        total=total,
+        limit=query.limit,
+        offset=query.offset,
+    )
 
 
 @router.get(
