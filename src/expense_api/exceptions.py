@@ -1,6 +1,64 @@
 from typing import Literal
 
 type ExpenseReferenceField = Literal["category", "payment_method"]
+type AuthenticationTokenType = Literal["access", "refresh"]
+
+
+class AuthenticationError(Exception):
+    """Base exception for failed authentication."""
+
+
+class CsrfValidationError(AuthenticationError):
+    """Raised when cookie authentication lacks a valid CSRF token."""
+
+    def __init__(self) -> None:
+        super().__init__("CSRF token is missing or invalid")
+
+
+class InactiveUserError(AuthenticationError):
+    """Raised when an inactive user attempts to authenticate."""
+
+    def __init__(self) -> None:
+        super().__init__("User account is inactive")
+
+
+class InvalidCredentialsError(AuthenticationError):
+    """Raised when login credentials cannot be verified."""
+
+    def __init__(self) -> None:
+        super().__init__("Invalid email or password")
+
+
+class TokenValidationError(AuthenticationError):
+    """Raised when an authentication token is invalid."""
+
+    def __init__(self, token_type: AuthenticationTokenType) -> None:
+        self.token_type = token_type
+        super().__init__(f"Invalid {token_type} token")
+
+
+class TokenExpiredError(TokenValidationError):
+    """Raised when an authentication token has expired."""
+
+    def __init__(self, token_type: AuthenticationTokenType) -> None:
+        self.token_type = token_type
+        AuthenticationError.__init__(self, f"Expired {token_type} token")
+
+
+class RefreshTokenReuseError(TokenValidationError):
+    """Raised when a rotated refresh token is presented again."""
+
+    def __init__(self) -> None:
+        self.token_type: AuthenticationTokenType = "refresh"
+        AuthenticationError.__init__(self, "Refresh token reuse detected")
+
+
+class UserAlreadyExistsError(Exception):
+    """Raised when an email is already registered."""
+
+    def __init__(self, email: str) -> None:
+        self.email = email
+        super().__init__("A user with this email already exists")
 
 
 class CategoryAlreadyExistsError(Exception):

@@ -1,10 +1,14 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 
-from expense_api.api.dependencies import CategoryServiceDependency
+from expense_api.api.dependencies import CategoryServiceDependency, get_current_user
 from expense_api.models import CategoryModel
 from expense_api.schemas import CategoryCreateSchema, CategoryReadSchema
 
-router = APIRouter(prefix="/categories", tags=["categories"])
+router = APIRouter(
+    prefix="/categories",
+    tags=["categories"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post(

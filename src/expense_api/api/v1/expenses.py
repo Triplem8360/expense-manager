@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query, Response, status
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 
-from expense_api.api.dependencies import ExpenseServiceDependency
+from expense_api.api.dependencies import ExpenseServiceDependency, get_current_user
 from expense_api.models import ExpenseModel
 from expense_api.schemas import (
     ExpenseCreateSchema,
@@ -13,7 +13,11 @@ from expense_api.schemas import (
     ExpenseReadSchema,
 )
 
-router = APIRouter(prefix="/expenses", tags=["expenses"])
+router = APIRouter(
+    prefix="/expenses",
+    tags=["expenses"],
+    dependencies=[Depends(get_current_user)],
+)
 ExpenseId = Annotated[int, Path(gt=0, description="Expense identifier")]
 
 

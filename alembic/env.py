@@ -8,12 +8,14 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from expense_api.core.config import get_settings
+from expense_api.core.config import get_database_settings
 from expense_api.db import Base
 from expense_api.db.models import (  # noqa: F401
     CategoryRecord,
     ExpenseRecord,
     PaymentMethodRecord,
+    RefreshSessionRecord,
+    UserRecord,
 )
 
 config = context.config
@@ -21,7 +23,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-settings = get_settings()
+settings = get_database_settings()
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
