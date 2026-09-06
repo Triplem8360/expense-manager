@@ -8,6 +8,8 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    NonNegativeInt,
+    PositiveInt,
     StringConstraints,
     model_validator,
 )
@@ -15,15 +17,40 @@ from pydantic import (
 from expense_api.models import PaymentMethod
 
 Title = Annotated[
-    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=200,
+        pattern=r"^[^\r\n\x00]+$",
+    ),
+    Field(
+        description="Short expense title without line breaks",
+        examples=["Team lunch"],
+    ),
 ]
 Description = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=2_000),
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=2_000,
+        pattern=r"^[^\x00]+$",
+    ),
+    Field(
+        description="Detailed explanation of the expense",
+        examples=["Lunch during the FastAPI course"],
+    ),
 ]
 Amount = Annotated[
     Decimal,
-    Field(gt=0, max_digits=14, decimal_places=2),
+    Field(
+        gt=0,
+        max_digits=14,
+        decimal_places=2,
+        description="Positive monetary amount with at most two decimal places",
+        examples=["24.50"],
+    ),
 ]
 Currency = Annotated[
     str,
@@ -32,19 +59,37 @@ Currency = Annotated[
         to_upper=True,
         min_length=3,
         max_length=3,
+        pattern=r"^[A-Za-z]{3}$",
+    ),
+    Field(
+        description="Three-letter currency code",
+        examples=["USD", "IRR"],
     ),
 ]
 Category = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=100),
+    Field(description="Expense category", examples=["Food"]),
 ]
 Merchant = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=200),
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=200,
+        pattern=r"^[^\r\n\x00]+$",
+    ),
+    Field(description="Merchant or vendor name", examples=["Course Cafe"]),
 ]
 Notes = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=2_000),
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=2_000,
+        pattern=r"^[^\x00]+$",
+    ),
+    Field(description="Optional additional information about the expense"),
 ]
 
 
@@ -56,8 +101,14 @@ class _ExpenseRequiredFieldsSchema(BaseModel):
     amount: Amount
     currency: Currency
     category: Category
-    payment_method: PaymentMethod
-    spent_at: AwareDatetime
+    payment_method: Annotated[
+        PaymentMethod, 
+        Field(description="How the expense was paid")
+    ]
+    spent_at: Annotated[
+        AwareDatetime,
+        Field(description="Timezone-aware date and time when the expense occurred"),
+    ]
 
 
 class ExpenseCreateSchema(_ExpenseRequiredFieldsSchema):
@@ -118,7 +169,7 @@ class ExpensePatchUpdateSchema(BaseModel):
 class ExpenseReadSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: Annotated[int, Field(gt=0)]
+    id: PositiveInt
     title: Title
     description: Description
     amount: Amount
@@ -131,9 +182,31 @@ class ExpenseReadSchema(BaseModel):
     created_at: AwareDatetime
     updated_at: AwareDatetime
 
+    @model_validator(mode="after")
+    def validate_timestamp_order(self) -> Self:
+        if self.updated_at < self.created_at:
+            raise ValueError("updated_at must be later than or equal to created_at")
+        return self
+
 
 class ExpensePageSchema(BaseModel):
-    items: list[ExpenseReadSchema]
-    total: Annotated[int, Field(ge=0)]
-    limit: Annotated[int, Field(ge=1, le=100)]
-    offset: Annotated[int, Field(ge=0)]
+    items: Annotated[
+        list[ExpenseReadSchema],
+        Field(description="Expenses in the requested page"),
+    ]
+    total: Annotated[
+        NonNegativeInt,
+        Field(description="Total number of expenses matching the filters"),
+    ]
+    limit: Annotated[PositiveInt, Field(le=100)]
+    offset: NonNegativeInt
+
+    @model_validator(mode="after")
+    def validate_page_metadata(self) -> Self:
+        if len(self.items) > self.limit:
+            raise ValueError("items cannot contain more entries than limit")
+        if len(self.items) > self.total:
+            raise ValueError("items cannot contain more entries than total")
+        if self.items and self.offset + len(self.items) > self.total:
+            raise ValueError("page range cannot exceed total")
+        return self

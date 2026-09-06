@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from typing import Annotated, Self
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    NonNegativeInt,
+    PositiveInt,
+    model_validator,
+)
 
 from expense_api.models import ExpenseSortField, PaymentMethod, SortDirection
 from expense_api.schemas.expense import Category, Currency, Merchant
@@ -13,16 +21,34 @@ class ExpenseListQuerySchema(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    offset: Annotated[int, Field(ge=0)] = 0
-    limit: Annotated[int, Field(ge=1, le=100)] = 20
+    offset: Annotated[
+        NonNegativeInt,
+        Field(description="Number of matching expenses to skip"),
+    ] = 0
+    limit: Annotated[
+        PositiveInt,
+        Field(le=100, description="Maximum number of expenses to return"),
+    ] = 20
     category: Category | None = None
     currency: Currency | None = None
     payment_method: PaymentMethod | None = None
     merchant: Merchant | None = None
-    spent_from: AwareDatetime | None = None
-    spent_to: AwareDatetime | None = None
-    sort_by: ExpenseSortField = "spent_at"
-    sort_order: SortDirection = "desc"
+    spent_from: Annotated[
+        AwareDatetime | None,
+        Field(description="Inclusive lower bound for spent_at"),
+    ] = None
+    spent_to: Annotated[
+        AwareDatetime | None,
+        Field(description="Inclusive upper bound for spent_at"),
+    ] = None
+    sort_by: Annotated[
+        ExpenseSortField,
+        Field(description="Expense field used for sorting"),
+    ] = "spent_at"
+    sort_order: Annotated[
+        SortDirection,
+        Field(description="Ascending or descending sort direction"),
+    ] = "desc"
 
     @model_validator(mode="after")
     def validate_spent_range(self) -> Self:
