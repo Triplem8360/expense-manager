@@ -15,6 +15,7 @@ from pydantic import (
 )
 
 from expense_api.models import PaymentMethod
+from expense_api.schemas.category import CategoryName
 
 Title = Annotated[
     str,
@@ -66,11 +67,6 @@ Currency = Annotated[
         examples=["USD", "IRR"],
     ),
 ]
-Category = Annotated[
-    str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=100),
-    Field(description="Expense category", examples=["Food"]),
-]
 Merchant = Annotated[
     str,
     StringConstraints(
@@ -100,10 +96,12 @@ class _ExpenseRequiredFieldsSchema(BaseModel):
     description: Description
     amount: Amount
     currency: Currency
-    category: Category
+    category: Annotated[
+        CategoryName,
+        Field(description="Expense category", examples=["Food"]),
+    ]
     payment_method: Annotated[
-        PaymentMethod, 
-        Field(description="How the expense was paid")
+        PaymentMethod, Field(description="How the expense was paid")
     ]
     spent_at: Annotated[
         AwareDatetime,
@@ -132,7 +130,7 @@ class ExpensePatchUpdateSchema(BaseModel):
     description: Description | None = None
     amount: Amount | None = None
     currency: Currency | None = None
-    category: Category | None = None
+    category: CategoryName | None = None
     payment_method: PaymentMethod | None = None
     merchant: Merchant | None = None
     spent_at: AwareDatetime | None = None
@@ -174,7 +172,7 @@ class ExpenseReadSchema(BaseModel):
     description: Description
     amount: Amount
     currency: Currency
-    category: Category
+    category: CategoryName
     payment_method: PaymentMethod
     merchant: Merchant | None
     spent_at: AwareDatetime
