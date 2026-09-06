@@ -1,5 +1,11 @@
 """Pydantic request and response schemas."""
 
+from expense_api.schemas.auth import (
+    AuthSessionReadSchema,
+    LoginSchema,
+    UserReadSchema,
+    UserRegisterSchema,
+)
 from expense_api.schemas.category import CategoryCreateSchema, CategoryReadSchema
 from expense_api.schemas.expense import (
     ExpenseCreateSchema,
@@ -15,6 +21,7 @@ from expense_api.schemas.payment_method import (
 )
 
 __all__ = [
+    "AuthSessionReadSchema",
     "CategoryCreateSchema",
     "CategoryReadSchema",
     "ExpenseCreateSchema",
@@ -23,6 +30,9 @@ __all__ = [
     "ExpensePatchUpdateSchema",
     "ExpensePutUpdateSchema",
     "ExpenseReadSchema",
+    "LoginSchema",
     "PaymentMethodCreateSchema",
     "PaymentMethodReadSchema",
+    "UserReadSchema",
+    "UserRegisterSchema",
 ]
