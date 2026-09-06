@@ -1,0 +1,35 @@
+<mxfile host="app.diagrams.net" agent="Codex" compressed="false">
+  <diagram id="expense-management-erd" name="Expense Management ERD">
+    <mxGraphModel dx="2054" dy="1077" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#1f2937;" value="Expense Management Database Schema (PostgreSQL)" vertex="1">
+          <mxGeometry height="40" width="760" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="categories" parent="1" style="html=1;whiteSpace=wrap;rounded=1;arcSize=4;fillColor=#eff6ff;strokeColor=#2563eb;strokeWidth=2;align=left;verticalAlign=top;spacing=0;shadow=1;" value="&lt;div style=&quot;background-color:#2563eb;color:#ffffff;font-size:16px;font-weight:bold;padding:10px;&quot;&gt;categories&lt;/div&gt;&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:12px;&quot; cellpadding=&quot;7&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/td&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;BIGINT IDENTITY&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;UQ&lt;/td&gt;&lt;td&gt;name&lt;/td&gt;&lt;td&gt;VARCHAR(100) NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;description&lt;/td&gt;&lt;td&gt;TEXT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;created_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;updated_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;div style=&quot;border-top:1px solid #bfdbfe;padding:8px;font-size:11px;color:#374151;&quot;&gt;CHECK: name must not be blank&lt;/div&gt;" vertex="1">
+          <mxGeometry height="300" width="330" x="50" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="payment_methods" parent="1" style="html=1;whiteSpace=wrap;rounded=1;arcSize=4;fillColor=#f5f3ff;strokeColor=#7c3aed;strokeWidth=2;align=left;verticalAlign=top;spacing=0;shadow=1;" value="&lt;div style=&quot;background-color:#7c3aed;color:#ffffff;font-size:16px;font-weight:bold;padding:10px;&quot;&gt;payment_methods&lt;/div&gt;&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:12px;&quot; cellpadding=&quot;7&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/td&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;BIGINT IDENTITY&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;UQ&lt;/td&gt;&lt;td&gt;code&lt;/td&gt;&lt;td&gt;VARCHAR(50) NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;display_name&lt;/td&gt;&lt;td&gt;VARCHAR(100) NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;created_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;updated_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;div style=&quot;border-top:1px solid #ddd6fe;padding:8px;font-size:11px;color:#374151;&quot;&gt;CHECK: code format; display_name not blank&lt;/div&gt;" vertex="1">
+          <mxGeometry height="300" width="330" x="50" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="expenses" parent="1" style="html=1;whiteSpace=wrap;rounded=1;arcSize=4;fillColor=#ecfdf5;strokeColor=#059669;strokeWidth=2;align=left;verticalAlign=top;spacing=0;shadow=1;" value="&lt;div style=&quot;background-color:#059669;color:#ffffff;font-size:16px;font-weight:bold;padding:10px;&quot;&gt;expenses&lt;/div&gt;&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:12px;&quot; cellpadding=&quot;6&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/td&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;BIGINT IDENTITY&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;title&lt;/td&gt;&lt;td&gt;VARCHAR(200) NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;description&lt;/td&gt;&lt;td&gt;TEXT NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;amount&lt;/td&gt;&lt;td&gt;NUMERIC(14,2) NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;currency&lt;/td&gt;&lt;td&gt;VARCHAR(3) NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/td&gt;&lt;td&gt;category_id&lt;/td&gt;&lt;td&gt;BIGINT NOT NULL, INDEX&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/td&gt;&lt;td&gt;payment_method_id&lt;/td&gt;&lt;td&gt;BIGINT NOT NULL, INDEX&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;merchant&lt;/td&gt;&lt;td&gt;VARCHAR(200) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;spent_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL, INDEX&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;notes&lt;/td&gt;&lt;td&gt;TEXT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;created_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;updated_at&lt;/td&gt;&lt;td&gt;TIMESTAMPTZ NOT NULL&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;div style=&quot;border-top:1px solid #a7f3d0;padding:8px;font-size:11px;color:#374151;&quot;&gt;CHECK: amount &amp;gt; 0; currency is 3 uppercase letters;&lt;br&gt;title and description must not be blank&lt;/div&gt;" vertex="1">
+          <mxGeometry height="660" width="430" x="650" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="category-expense-relation" edge="1" parent="1" source="categories" style="edgeStyle=entityRelationEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2563eb;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" target="expenses" value="category_id · ON DELETE RESTRICT">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="480" y="205" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="payment-expense-relation" edge="1" parent="1" source="payment_methods" style="edgeStyle=entityRelationEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#7c3aed;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" target="expenses" value="payment_method_id · ON DELETE RESTRICT">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="520" y="575" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" parent="1" style="text;html=1;strokeColor=#d1d5db;fillColor=#f9fafb;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;spacing=10;fontSize=12;fontColor=#374151;" value="&lt;b&gt;Cardinality:&lt;/b&gt; one category has many expenses; one payment method has many expenses." vertex="1">
+          <mxGeometry height="60" width="680" x="270" y="785" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

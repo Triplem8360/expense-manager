@@ -26,7 +26,7 @@ async def create_expense(
     data: ExpenseCreateSchema,
     service: ExpenseServiceDependency,
 ) -> ExpenseModel:
-    return service.create_expense(data)
+    return await service.create_expense(data)
 
 
 @router.get(
@@ -38,7 +38,7 @@ async def list_expenses(
     service: ExpenseServiceDependency,
     query: Annotated[ExpenseListQuerySchema, Query()],
 ) -> ExpensePageSchema:
-    expenses, total = service.list_expenses(query)
+    expenses, total = await service.list_expenses(query)
     return ExpensePageSchema(
         items=[ExpenseReadSchema.model_validate(expense) for expense in expenses],
         total=total,
@@ -56,7 +56,7 @@ async def get_expense(
     expense_id: ExpenseId,
     service: ExpenseServiceDependency,
 ) -> ExpenseModel:
-    return service.get_expense(expense_id)
+    return await service.get_expense(expense_id)
 
 
 @router.put(
@@ -69,7 +69,7 @@ async def replace_expense(
     data: ExpensePutUpdateSchema,
     service: ExpenseServiceDependency,
 ) -> ExpenseModel:
-    return service.replace_expense(expense_id, data)
+    return await service.replace_expense(expense_id, data)
 
 
 @router.patch(
@@ -82,7 +82,7 @@ async def update_expense(
     data: ExpensePatchUpdateSchema,
     service: ExpenseServiceDependency,
 ) -> ExpenseModel:
-    return service.update_expense(expense_id, data)
+    return await service.update_expense(expense_id, data)
 
 
 @router.delete(
@@ -94,5 +94,5 @@ async def delete_expense(
     expense_id: ExpenseId,
     service: ExpenseServiceDependency,
 ) -> Response:
-    service.delete_expense(expense_id)
+    await service.delete_expense(expense_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -24,7 +24,7 @@ class ExpenseService:
     def __init__(self, repository: ExpenseRepository) -> None:
         self._repository = repository
 
-    def create_expense(self, data: ExpenseCreateSchema) -> ExpenseModel:
+    async def create_expense(self, data: ExpenseCreateSchema) -> ExpenseModel:
         create_data: ExpenseCreateData = {
             "title": data.title,
             "description": data.description,
@@ -36,10 +36,10 @@ class ExpenseService:
             "spent_at": data.spent_at,
             "notes": data.notes,
         }
-        return self._repository.create(create_data)
+        return await self._repository.create(create_data)
 
-    def list_expenses(self, query: ExpenseListQuerySchema) -> ExpensePageResult:
-        return self._repository.list_page(
+    async def list_expenses(self, query: ExpenseListQuerySchema) -> ExpensePageResult:
+        return await self._repository.list_page(
             offset=query.offset,
             limit=query.limit,
             category=query.category,
@@ -52,16 +52,16 @@ class ExpenseService:
             sort_order=query.sort_order,
         )
 
-    def get_expense(self, expense_id: int) -> ExpenseModel:
-        expense = self._repository.get_by_id(expense_id)
+    async def get_expense(self, expense_id: int) -> ExpenseModel:
+        expense = await self._repository.get_by_id(expense_id)
         if expense is None:
             raise ExpenseNotFoundError(expense_id)
         return expense
 
-    def replace_expense(
-        self,
-        expense_id: int,
-        data: ExpensePutUpdateSchema,
+    async def replace_expense(
+        self, 
+        expense_id: int, 
+        data: ExpensePutUpdateSchema
     ) -> ExpenseModel:
         changes: ExpenseUpdateData = {
             "title": data.title,
@@ -74,9 +74,9 @@ class ExpenseService:
             "spent_at": data.spent_at,
             "notes": data.notes,
         }
-        return self._update_or_raise(expense_id, changes)
+        return await self._update_or_raise(expense_id, changes)
 
-    def update_expense(
+    async def update_expense(
         self,
         expense_id: int,
         data: ExpensePatchUpdateSchema,
@@ -85,18 +85,18 @@ class ExpenseService:
             ExpenseUpdateData,
             data.model_dump(exclude_unset=True),
         )
-        return self._update_or_raise(expense_id, changes)
+        return await self._update_or_raise(expense_id, changes)
 
-    def delete_expense(self, expense_id: int) -> None:
-        if not self._repository.delete(expense_id):
+    async def delete_expense(self, expense_id: int) -> None:
+        if not await self._repository.delete(expense_id):
             raise ExpenseNotFoundError(expense_id)
 
-    def _update_or_raise(
+    async def _update_or_raise(
         self,
         expense_id: int,
         changes: ExpenseUpdateData,
     ) -> ExpenseModel:
-        expense = self._repository.update(expense_id, changes)
+        expense = await self._repository.update(expense_id, changes)
         if expense is None:
             raise ExpenseNotFoundError(expense_id)
         return expense

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "An educational expense management REST API built with FastAPI."
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.17.2,<2.0.0",
     "asyncpg>=0.31.0,<1.0.0",
     "fastapi>=0.115.12,<1.0.0",
     "pydantic>=2.11.3,<3.0.0",

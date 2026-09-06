@@ -13,7 +13,8 @@ from pydantic import (
 )
 
 from expense_api.models import ExpenseSortField, PaymentMethod, SortDirection
-from expense_api.schemas.expense import Category, Currency, Merchant
+from expense_api.schemas.category import CategoryName
+from expense_api.schemas.expense import Currency, Merchant
 
 
 class ExpenseListQuerySchema(BaseModel):
@@ -29,7 +30,7 @@ class ExpenseListQuerySchema(BaseModel):
         PositiveInt,
         Field(le=100, description="Maximum number of expenses to return"),
     ] = 20
-    category: Category | None = None
+    category: CategoryName | None = None
     currency: Currency | None = None
     payment_method: PaymentMethod | None = None
     merchant: Merchant | None = None
