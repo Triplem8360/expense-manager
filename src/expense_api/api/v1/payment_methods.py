@@ -1,10 +1,17 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 
-from expense_api.api.dependencies import PaymentMethodServiceDependency
+from expense_api.api.dependencies import (
+    PaymentMethodServiceDependency,
+    get_current_user,
+)
 from expense_api.models import PaymentMethodModel
 from expense_api.schemas import PaymentMethodCreateSchema, PaymentMethodReadSchema
 
-router = APIRouter(prefix="/payment-methods", tags=["payment-methods"])
+router = APIRouter(
+    prefix="/payment-methods",
+    tags=["payment-methods"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post(

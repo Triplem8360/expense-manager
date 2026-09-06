@@ -79,6 +79,13 @@ class Settings(DatabaseSettings):
     refresh_token_cookie_name: str = "__Host-expense_refresh"
     csrf_token_cookie_name: str = "__Host-expense_csrf"
     csrf_token_header_name: str = "X-CSRF-Token"
+    
+    @field_validator("cookie_secure")
+    @classmethod
+    def require_secure_cookies(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("COOKIE_SECURE must be true for __Host- cookies")
+        return value
 
 
 @lru_cache

@@ -4,18 +4,22 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from expense_api.api.exception_handlers import (
+    authentication_error_handler,
     expense_not_found_handler,
     expense_reference_not_found_handler,
     lookup_value_already_exists_handler,
+    user_already_exists_handler,
 )
 from expense_api.api.router import api_router
 from expense_api.core.config import get_settings
 from expense_api.db.session import engine
 from expense_api.exceptions import (
+    AuthenticationError,
     CategoryAlreadyExistsError,
     ExpenseNotFoundError,
     ExpenseReferenceNotFoundError,
     PaymentMethodAlreadyExistsError,
+    UserAlreadyExistsError,
 )
 
 
@@ -46,5 +50,7 @@ def create_app() -> FastAPI:
         PaymentMethodAlreadyExistsError,
         lookup_value_already_exists_handler,
     )
+    app.add_exception_handler(AuthenticationError, authentication_error_handler)
+    app.add_exception_handler(UserAlreadyExistsError, user_already_exists_handler)
     app.include_router(api_router)
     return app
