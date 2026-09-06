@@ -1,13 +1,17 @@
-from typing import Annotated, cast
+from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from expense_api.db.session import get_session
 from expense_api.repositories import ExpenseRepository
 from expense_api.services import ExpenseService
 
 
-def get_expense_repository(request: Request) -> ExpenseRepository:
-    return cast(ExpenseRepository, request.app.state.expense_repository)
+def get_expense_repository(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> ExpenseRepository:
+    return ExpenseRepository(session)
 
 
 def get_expense_service(
