@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from expense_api.core.config import get_settings
+from expense_api.core.config import get_database_settings
 
-settings = get_settings()
+settings = get_database_settings()
 
 engine: AsyncEngine = create_async_engine(
     settings.database_url,
