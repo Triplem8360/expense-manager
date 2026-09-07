@@ -1,8 +1,22 @@
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import (
+    Field,
+    SecretStr,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+LocaleCode = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        pattern=r"^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
+    ),
+]
 
 
 class DatabaseSettings(BaseSettings):
@@ -30,6 +44,20 @@ class Settings(DatabaseSettings):
     )
     app_version: str = Field(default="0.1.0", validation_alias="APP_VERSION")
     app_debug: bool = Field(default=False, validation_alias="APP_DEBUG")
+    default_locale: LocaleCode = Field(
+        default="en",
+        validation_alias="DEFAULT_LOCALE",
+    )
+    supported_locales: Annotated[tuple[LocaleCode, ...], NoDecode] = Field(
+        default=("en", "fa"),
+        validation_alias="SUPPORTED_LOCALES",
+    )
+    translation_domain: str = Field(
+        default="messages",
+        min_length=1,
+        pattern=r"^[a-z][a-z0-9_]*$",
+        validation_alias="TRANSLATION_DOMAIN",
+    )
 
     jwt_secret_key: SecretStr = Field(
         min_length=32,
@@ -79,13 +107,38 @@ class Settings(DatabaseSettings):
     refresh_token_cookie_name: str = "__Host-expense_refresh"
     csrf_token_cookie_name: str = "__Host-expense_csrf"
     csrf_token_header_name: str = "X-CSRF-Token"
-    
+
+    @field_validator("supported_locales", mode="before")
+    @classmethod
+    def parse_supported_locales(cls, value: object) -> object:
+        if isinstance(value, str):
+            return tuple(locale.strip() for locale in value.split(","))
+        return value
+
+    @field_validator("supported_locales")
+    @classmethod
+    def require_unique_supported_locales(
+        cls, 
+        value: tuple[str, ...]
+    ) -> tuple[str, ...]:
+        if not value:
+            raise ValueError("SUPPORTED_LOCALES must contain at least one locale")
+        if len(set(value)) != len(value):
+            raise ValueError("SUPPORTED_LOCALES must not contain duplicates")
+        return value
+
     @field_validator("cookie_secure")
     @classmethod
     def require_secure_cookies(cls, value: bool) -> bool:
         if not value:
             raise ValueError("COOKIE_SECURE must be true for __Host- cookies")
         return value
+
+    @model_validator(mode="after")
+    def require_supported_default_locale(self) -> Self:
+        if self.default_locale not in self.supported_locales:
+            raise ValueError("DEFAULT_LOCALE must be included in SUPPORTED_LOCALES")
+        return self
 
 
 @lru_cache

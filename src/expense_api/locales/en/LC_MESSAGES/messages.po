@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: expense-manager 0.1.0\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Welcome to the Expense Manager API."
+msgstr "Welcome to the Expense Manager API."
+
+msgid "The service is running."
+msgstr "The service is running."
+
+msgid "Expense created successfully."
+msgstr "Expense created successfully."
+
+msgid "Expense updated successfully."
+msgstr "Expense updated successfully."
+
+msgid "Expense deleted successfully."
+msgstr "Expense deleted successfully."
+
+msgid "Authentication required."
+msgstr "Authentication required."
+
+msgid "Invalid or expired token."
+msgstr "Invalid or expired token."
+
+msgid "Requested language is not supported."
+msgstr "Requested language is not supported."
