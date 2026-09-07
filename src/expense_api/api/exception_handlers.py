@@ -19,28 +19,35 @@ from expense_api.exceptions import (
     TokenValidationError,
     UserAlreadyExistsError,
 )
+from expense_api.schemas import ErrorResponseSchema
 
 
 async def authentication_error_handler(
-    request: Request,
-    exc: Exception,
+    request: Request, exc: Exception
 ) -> JSONResponse:
     if not isinstance(exc, AuthenticationError):
         raise exc
 
     translator = _translator_for_request(request)
+
     status_code = (
         status.HTTP_403_FORBIDDEN
         if isinstance(exc, (CsrfValidationError, InactiveUserError))
         else status.HTTP_401_UNAUTHORIZED
     )
+
     response = _localized_json_response(
         translator=translator,
         status_code=status_code,
-        content={"detail": _authentication_error_detail(exc, translator)},
+        content=_error_content(
+            status_code=status_code,
+            message=_authentication_error_detail(exc, translator),
+        ),
         headers={"Cache-Control": "no-store"},
     )
+
     settings = get_settings()
+
     if isinstance(exc, InactiveUserError):
         clear_auth_cookies(response, settings)
     elif isinstance(exc, TokenValidationError):
@@ -48,6 +55,7 @@ async def authentication_error_handler(
             clear_auth_cookies(response, settings)
         else:
             clear_access_cookie(response, settings)
+
     return response
 
 
@@ -57,13 +65,16 @@ async def user_already_exists_handler(
 ) -> JSONResponse:
     if not isinstance(exc, UserAlreadyExistsError):
         raise exc
+
     translator = _translator_for_request(request)
+
     return _localized_json_response(
         translator=translator,
         status_code=status.HTTP_409_CONFLICT,
-        content={
-            "detail": translator.gettext("A user with this email already exists"),
-        },
+        content=_error_content(
+            status_code=status.HTTP_409_CONFLICT,
+            message=translator.gettext("A user with this email already exists"),
+        ),
     )
 
 
@@ -76,7 +87,9 @@ async def lookup_value_already_exists_handler(
         (CategoryAlreadyExistsError, PaymentMethodAlreadyExistsError),
     ):
         raise exc
+
     translator = _translator_for_request(request)
+
     if isinstance(exc, CategoryAlreadyExistsError):
         detail = translator.gettext("Category already exists: %(name)s") % {
             "name": exc.name,
@@ -89,7 +102,10 @@ async def lookup_value_already_exists_handler(
     return _localized_json_response(
         translator=translator,
         status_code=status.HTTP_409_CONFLICT,
-        content={"detail": detail},
+        content=_error_content(
+            status_code=status.HTTP_409_CONFLICT,
+            message=detail,
+        ),
     )
 
 
@@ -99,14 +115,20 @@ async def expense_not_found_handler(
 ) -> JSONResponse:
     if not isinstance(exc, ExpenseNotFoundError):
         raise exc
+
     translator = _translator_for_request(request)
+
     detail = translator.gettext("Expense %(expense_id)s was not found") % {
         "expense_id": exc.expense_id,
     }
+
     return _localized_json_response(
         translator=translator,
         status_code=status.HTTP_404_NOT_FOUND,
-        content={"detail": detail},
+        content=_error_content(
+            status_code=status.HTTP_404_NOT_FOUND,
+            message=detail,
+        ),
     )
 
 
@@ -116,7 +138,9 @@ async def expense_reference_not_found_handler(
 ) -> JSONResponse:
     if not isinstance(exc, ExpenseReferenceNotFoundError):
         raise exc
+
     translator = _translator_for_request(request)
+
     if exc.field == "category":
         detail = translator.gettext("Unknown category: %(value)s") % {
             "value": exc.value,
@@ -129,11 +153,11 @@ async def expense_reference_not_found_handler(
     return _localized_json_response(
         translator=translator,
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-        content={
-            "detail": detail,
-            "field": exc.field,
-            "value": exc.value,
-        },
+        content=_error_content(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            message=detail,
+            details={"field": exc.field, "value": exc.value},
+        ),
     )
 
 
@@ -155,6 +179,19 @@ def _localized_json_response(
     )
     set_content_language(response, translator.locale)
     return response
+
+
+def _error_content(
+    *,
+    status_code: int,
+    message: str,
+    details: dict[str, str] | None = None,
+) -> dict[str, object]:
+    return ErrorResponseSchema(
+        status=status_code,
+        message=message,
+        details=details,
+    ).model_dump(exclude_none=True)
 
 
 def _authentication_error_detail(
