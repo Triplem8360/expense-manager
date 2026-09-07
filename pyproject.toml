@@ -26,4 +26,5 @@ packages = ["src/expense_api"]
 [dependency-groups]
 dev = [
     "babel>=2.17.0,<3.0.0",
+    "ruff>=0.13.0,<1.0.0",
 ]

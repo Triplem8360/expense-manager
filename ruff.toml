@@ -1,0 +1,47 @@
+required-version = ">=0.13.0"
+target-version = "py313"
+line-length = 88
+indent-width = 4
+
+src = ["src"]
+
+respect-gitignore = true
+force-exclude = true
+preview = false
+
+# ruff check --fix فقط اصلاحات امن را اعمال می‌کند.
+unsafe-fixes = false
+show-fixes = true
+
+[lint]
+select = [
+    "ASYNC", # خطاهای رایج در کد async
+    "B",     # flake8-bugbear برای الگوهای مستعد خطا
+    "DTZ",   # الزام استفاده صحیح از datetimeهای timezone-aware
+    "E",     # pycodestyle برای خطاهای سبکی پایه
+    "F",     # Pyflakes برای import و متغیرهای بلااستفاده
+    "I",     # isort برای مرتب‌سازی importها
+    "RUF",   # ruleهای اختصاصی Ruff
+    "SIM",   # flake8-simplify برای ساده‌سازی کد
+    "UP",    # pyupgrade برای نگارش مدرن Python
+]
+
+# این موارد با formatter تداخل دارند یا formatter تضمین کامل برای آن‌ها ندارد.
+ignore = [
+    "E111",
+    "E114",
+    "E117",
+    "E501",
+]
+
+[lint.isort]
+known-first-party = ["expense_api"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
