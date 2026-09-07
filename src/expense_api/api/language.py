@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from expense_api.core.localization import TranslationCatalog
+from fastapi import Request, Response
+
+from expense_api.core.localization import TranslationCatalog, Translator
 
 
 def parse_accept_language(header_value: str | None) -> tuple[str, ...]:
@@ -42,6 +44,31 @@ def resolve_request_locale(
             return matched_locale
 
     return catalog.default_locale
+
+
+def get_translator_for_request(
+    request: Request,
+    catalog: TranslationCatalog,
+) -> Translator:
+    locale = resolve_request_locale(
+        query_language=request.query_params.get("lang"),
+        accept_language=request.headers.get("Accept-Language"),
+        catalog=catalog,
+    )
+    return catalog.get_translator(locale)
+
+
+def set_content_language(response: Response, locale: str) -> None:
+    """Describe the selected representation language to clients and caches."""
+    response.headers["Content-Language"] = locale
+    vary_values = [
+        value.strip()
+        for value in response.headers.get("Vary", "").split(",")
+        if value.strip()
+    ]
+    if not any(value.casefold() == "accept-language" for value in vary_values):
+        vary_values.append("Accept-Language")
+    response.headers["Vary"] = ", ".join(vary_values)
 
 
 def _parse_quality(parameters: list[str]) -> float | None:
