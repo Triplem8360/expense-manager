@@ -69,7 +69,11 @@ class TranslationCatalog:
         self._locales_directory = locales_directory
         self._domain = domain
         self._default_locale = default_locale
+        self._ordered_locales = supported_locales
         self._supported_locales = frozenset(supported_locales)
+        self._normalized_locales = {
+            self._normalize_locale(locale): locale for locale in supported_locales
+        }
 
     @property
     def default_locale(self) -> str:
@@ -80,23 +84,40 @@ class TranslationCatalog:
         return self._supported_locales
 
     def supports(self, locale: str) -> bool:
-        return locale in self._supported_locales
+        return self.match_locale(locale) is not None
+
+    def match_locale(self, requested_locale: str) -> str | None:
+        """Match a language tag exactly or by its base language."""
+        normalized_locale = self._normalize_locale(requested_locale)
+        exact_match = self._normalized_locales.get(normalized_locale)
+        if exact_match is not None:
+            return exact_match
+
+        base_language = normalized_locale.partition("-")[0]
+        for supported_locale in self._ordered_locales:
+            supported_base = self._normalize_locale(supported_locale).partition("-")[0]
+            if supported_base == base_language:
+                return supported_locale
+        return None
 
     def get_translator(self, locale: str | None = None) -> Translator:
-        resolved_locale = (
-            locale if locale in self._supported_locales else self._default_locale
-        )
+        matched_locale = self.match_locale(locale) if locale is not None else None
+        resolved_locale = matched_locale or self._default_locale
         return _load_translator(
             locale=resolved_locale,
             domain=self._domain,
             locales_directory=self._locales_directory,
         )
 
+    @staticmethod
+    def _normalize_locale(locale: str) -> str:
+        return locale.strip().replace("_", "-").casefold()
+
 
 @lru_cache
 def get_translation_catalog() -> TranslationCatalog:
     settings: Settings = get_settings()
-    
+
     return TranslationCatalog(
         locales_directory=LOCALES_DIRECTORY,
         domain=settings.translation_domain,
