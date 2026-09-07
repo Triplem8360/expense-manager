@@ -15,6 +15,7 @@ from expense_api.schemas.expense import (
     ExpenseReadSchema,
 )
 from expense_api.schemas.expense_query import ExpenseListQuerySchema
+from expense_api.schemas.localization import LocalizedMessageSchema
 from expense_api.schemas.payment_method import (
     PaymentMethodCreateSchema,
     PaymentMethodReadSchema,
@@ -30,6 +31,7 @@ __all__ = [
     "ExpensePatchUpdateSchema",
     "ExpensePutUpdateSchema",
     "ExpenseReadSchema",
+    "LocalizedMessageSchema",
     "LoginSchema",
     "PaymentMethodCreateSchema",
     "PaymentMethodReadSchema",

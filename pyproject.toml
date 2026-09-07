@@ -22,3 +22,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/expense_api"]
+
+[dependency-groups]
+dev = [
+    "babel>=2.17.0,<3.0.0",
+]

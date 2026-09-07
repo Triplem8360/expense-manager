@@ -2,11 +2,17 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, Header, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from expense_api.api.cookies import validate_csrf_request
+from expense_api.api.language import resolve_request_locale
 from expense_api.core.config import Settings, get_settings
+from expense_api.core.localization import (
+    TranslationCatalog,
+    Translator,
+    get_translation_catalog,
+)
 from expense_api.db.session import get_session
 from expense_api.exceptions import TokenValidationError
 from expense_api.models import UserModel
@@ -72,6 +78,30 @@ def get_payment_method_service(
     return PaymentMethodService(repository)
 
 
+def get_request_translator(
+    catalog: Annotated[TranslationCatalog, Depends(get_translation_catalog)],
+    language: Annotated[
+        str | None,
+        Query(
+            alias="lang",
+            min_length=2,
+            max_length=35,
+            pattern=r"^[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{2,8})*$",
+        ),
+    ] = None,
+    accept_language: Annotated[
+        str | None,
+        Header(alias="Accept-Language", max_length=512),
+    ] = None,
+) -> Translator:
+    locale = resolve_request_locale(
+        query_language=language,
+        accept_language=accept_language,
+        catalog=catalog,
+    )
+    return catalog.get_translator(locale)
+
+
 async def get_current_user(
     request: Request,
     service: AuthServiceDependency,
@@ -97,3 +127,4 @@ PaymentMethodServiceDependency = Annotated[
     Depends(get_payment_method_service),
 ]
 CurrentUserDependency = Annotated[UserModel, Depends(get_current_user)]
+TranslatorDependency = Annotated[Translator, Depends(get_request_translator)]
