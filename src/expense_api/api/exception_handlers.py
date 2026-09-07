@@ -82,9 +82,9 @@ async def lookup_value_already_exists_handler(
             "name": exc.name,
         }
     else:
-        detail = translator.gettext(
-            "Payment method already exists: %(code)s"
-        ) % {"code": exc.code}
+        detail = translator.gettext("Payment method already exists: %(code)s") % {
+            "code": exc.code
+        }
 
     return _localized_json_response(
         translator=translator,

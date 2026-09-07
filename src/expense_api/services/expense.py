@@ -59,9 +59,7 @@ class ExpenseService:
         return expense
 
     async def replace_expense(
-        self, 
-        expense_id: int, 
-        data: ExpensePutUpdateSchema
+        self, expense_id: int, data: ExpensePutUpdateSchema
     ) -> ExpenseModel:
         changes: ExpenseUpdateData = {
             "title": data.title,

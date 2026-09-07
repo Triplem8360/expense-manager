@@ -118,8 +118,7 @@ class Settings(DatabaseSettings):
     @field_validator("supported_locales")
     @classmethod
     def require_unique_supported_locales(
-        cls, 
-        value: tuple[str, ...]
+        cls, value: tuple[str, ...]
     ) -> tuple[str, ...]:
         if not value:
             raise ValueError("SUPPORTED_LOCALES must contain at least one locale")
