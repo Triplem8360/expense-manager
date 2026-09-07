@@ -7,6 +7,7 @@ from expense_api.schemas.auth import (
     UserRegisterSchema,
 )
 from expense_api.schemas.category import CategoryCreateSchema, CategoryReadSchema
+from expense_api.schemas.error import ErrorResponseSchema
 from expense_api.schemas.expense import (
     ExpenseCreateSchema,
     ExpensePageSchema,
@@ -25,6 +26,7 @@ __all__ = [
     "AuthSessionReadSchema",
     "CategoryCreateSchema",
     "CategoryReadSchema",
+    "ErrorResponseSchema",
     "ExpenseCreateSchema",
     "ExpenseListQuerySchema",
     "ExpensePageSchema",
