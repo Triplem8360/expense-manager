@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import Depends, Header, Query, Request
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from expense_api.api.cookies import validate_csrf_request
 from expense_api.api.language import resolve_request_locale
+from expense_api.cache import ExpenseCache
 from expense_api.core.config import Settings, get_settings
 from expense_api.core.localization import (
     TranslationCatalog,
@@ -57,10 +59,22 @@ def get_expense_repository(
     return ExpenseRepository(session)
 
 
+def get_expense_cache(
+    client: RedisClientDependency,
+    settings: SettingsDependency,
+) -> ExpenseCache:
+    return ExpenseCache(
+        client,
+        key_prefix=settings.cache_key_prefix,
+        ttl_seconds=settings.expense_cache_ttl_seconds,
+    )
+
+
 def get_expense_service(
     repository: Annotated[ExpenseRepository, Depends(get_expense_repository)],
+    cache: ExpenseCacheDependency,
 ) -> ExpenseService:
-    return ExpenseService(repository)
+    return ExpenseService(repository, cache)
 
 
 def get_payment_method_repository(
@@ -102,6 +116,16 @@ def get_request_translator(
     return catalog.get_translator(locale)
 
 
+def get_redis_client(request: Request) -> Redis:
+    try:
+        redis_client = request.app.state.redis_client
+    except AttributeError as exc:
+        raise RuntimeError(
+            "Redis client is unavailable outside the application lifespan"
+        ) from exc
+    return cast(Redis, redis_client)
+
+
 async def get_current_user(
     request: Request,
     service: AuthServiceDependency,
@@ -122,9 +146,11 @@ SettingsDependency = Annotated[Settings, Depends(get_settings)]
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 CategoryServiceDependency = Annotated[CategoryService, Depends(get_category_service)]
 ExpenseServiceDependency = Annotated[ExpenseService, Depends(get_expense_service)]
+ExpenseCacheDependency = Annotated[ExpenseCache, Depends(get_expense_cache)]
 PaymentMethodServiceDependency = Annotated[
     PaymentMethodService,
     Depends(get_payment_method_service),
 ]
 CurrentUserDependency = Annotated[UserModel, Depends(get_current_user)]
 TranslatorDependency = Annotated[Translator, Depends(get_request_translator)]
+RedisClientDependency = Annotated[Redis, Depends(get_redis_client)]

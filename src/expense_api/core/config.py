@@ -3,6 +3,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import (
     Field,
+    RedisDsn,
     SecretStr,
     StringConstraints,
     field_validator,
@@ -15,6 +16,15 @@ LocaleCode = Annotated[
     StringConstraints(
         strip_whitespace=True,
         pattern=r"^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
+    ),
+]
+CacheKeyPrefix = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9:_-]*$",
     ),
 ]
 
@@ -57,6 +67,42 @@ class Settings(DatabaseSettings):
         min_length=1,
         pattern=r"^[a-z][a-z0-9_]*$",
         validation_alias="TRANSLATION_DOMAIN",
+    )
+
+    redis_url: RedisDsn = Field(validation_alias="REDIS_URL")
+    redis_max_connections: int = Field(
+        default=20,
+        ge=1,
+        le=200,
+        validation_alias="REDIS_MAX_CONNECTIONS",
+    )
+    redis_connect_timeout_seconds: float = Field(
+        default=2.0,
+        gt=0,
+        le=30,
+        validation_alias="REDIS_CONNECT_TIMEOUT_SECONDS",
+    )
+    redis_socket_timeout_seconds: float = Field(
+        default=2.0,
+        gt=0,
+        le=30,
+        validation_alias="REDIS_SOCKET_TIMEOUT_SECONDS",
+    )
+    redis_health_check_interval_seconds: int = Field(
+        default=30,
+        ge=0,
+        le=300,
+        validation_alias="REDIS_HEALTH_CHECK_INTERVAL_SECONDS",
+    )
+    cache_key_prefix: CacheKeyPrefix = Field(
+        default="expense-manager",
+        validation_alias="CACHE_KEY_PREFIX",
+    )
+    expense_cache_ttl_seconds: int = Field(
+        default=300,
+        ge=30,
+        le=3_600,
+        validation_alias="EXPENSE_CACHE_TTL_SECONDS",
     )
 
     jwt_secret_key: SecretStr = Field(
