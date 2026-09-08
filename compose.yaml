@@ -92,6 +92,33 @@ services:
     networks:
       - backend
 
+  locust:
+    image: locustio/locust:2.46.3
+    profiles:
+      - loadtest
+    environment:
+      LOCUST_LOCUSTFILE: /mnt/locust/locustfile.py
+      LOCUST_HOST: ${LOCUST_TARGET_HOST:-http://api:8000}
+      LOCUST_WEB_HOST: 0.0.0.0
+      LOCUST_WEB_PORT: 8089
+      LOAD_TEST_EMAIL: ${LOAD_TEST_EMAIL:-}
+      LOAD_TEST_PASSWORD: ${LOAD_TEST_PASSWORD:-LoadTestPassword123}
+      LOAD_TEST_EXPENSE_ID: ${LOAD_TEST_EXPENSE_ID:-}
+      LOAD_TEST_MAX_FAILURE_RATIO: ${LOAD_TEST_MAX_FAILURE_RATIO:-0.01}
+      LOAD_TEST_MAX_AVG_RESPONSE_MS: ${LOAD_TEST_MAX_AVG_RESPONSE_MS:-500}
+      LOAD_TEST_MAX_P95_RESPONSE_MS: ${LOAD_TEST_MAX_P95_RESPONSE_MS:-1000}
+    ports:
+      - "127.0.0.1:${LOCUST_WEB_PORT:-8089}:8089"
+    volumes:
+      - ./loadtest:/mnt/locust:ro
+      - ./loadtest/reports:/reports
+    depends_on:
+      api:
+        condition: service_healthy
+    init: true
+    networks:
+      - backend
+
 volumes:
   postgres_data:
 
