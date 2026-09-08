@@ -46,9 +46,12 @@ COPY --from=builder --chown=expense-api:expense-api /opt/venv /opt/venv
 COPY --chown=expense-api:expense-api src /app/src
 COPY --chown=expense-api:expense-api alembic /app/alembic
 COPY --chown=expense-api:expense-api alembic.ini /app/alembic.ini
+COPY --chmod=755 --chown=expense-api:expense-api entrypoint.sh /app/entrypoint.sh
 
 USER expense-api
 
 EXPOSE 8000
+
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 CMD ["uvicorn", "expense_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
