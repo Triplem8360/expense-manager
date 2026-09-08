@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Annotated, Literal, Self
 
 from pydantic import (
+    AnyHttpUrl,
     Field,
     RedisDsn,
     SecretStr,
@@ -54,6 +55,21 @@ class Settings(DatabaseSettings):
     )
     app_version: str = Field(default="0.1.0", validation_alias="APP_VERSION")
     app_debug: bool = Field(default=False, validation_alias="APP_DEBUG")
+    sentry_dsn: AnyHttpUrl | None = Field(
+        default=None,
+        validation_alias="SENTRY_DSN",
+    )
+    sentry_environment: str = Field(
+        default="development",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9_-]*$",
+        validation_alias="SENTRY_ENVIRONMENT",
+    )
+    sentry_send_default_pii: bool = Field(
+        default=False,
+        validation_alias="SENTRY_SEND_DEFAULT_PII",
+    )
     default_locale: LocaleCode = Field(
         default="en",
         validation_alias="DEFAULT_LOCALE",
@@ -153,6 +169,13 @@ class Settings(DatabaseSettings):
     refresh_token_cookie_name: str = "__Host-expense_refresh"
     csrf_token_cookie_name: str = "__Host-expense_csrf"
     csrf_token_header_name: str = "X-CSRF-Token"
+
+    @field_validator("sentry_dsn", mode="before")
+    @classmethod
+    def parse_optional_sentry_dsn(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
 
     @field_validator("supported_locales", mode="before")
     @classmethod
