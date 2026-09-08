@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from expense_api.api.dependencies import get_current_user, get_expense_service
 from expense_api.app import create_app
+from expense_api.cache import ExpenseCache
 from expense_api.repositories import ExpenseRepository
 from expense_api.services import ExpenseService
 
@@ -23,9 +24,17 @@ def repository() -> AsyncMock:
 
 
 @pytest.fixture
-def app(repository: AsyncMock) -> FastAPI:
+def cache() -> AsyncMock:
+    cache = AsyncMock(spec=ExpenseCache)
+    cache.get_expense.return_value = None
+    cache.get_page.return_value = (None, None)
+    return cache
+
+
+@pytest.fixture
+def app(repository: AsyncMock, cache: AsyncMock) -> FastAPI:
     app = create_app()
-    service = ExpenseService(repository)
+    service = ExpenseService(repository, cache)
 
     def override_expense_service() -> ExpenseService:
         return service
