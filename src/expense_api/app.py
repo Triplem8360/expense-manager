@@ -11,6 +11,7 @@ from expense_api.api.exception_handlers import (
     user_already_exists_handler,
 )
 from expense_api.api.router import api_router
+from expense_api.cache import create_redis_client
 from expense_api.core.config import get_settings
 from expense_api.db.session import engine
 from expense_api.exceptions import (
@@ -24,9 +25,17 @@ from expense_api.exceptions import (
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    yield
-    await engine.dispose()
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    redis_client = create_redis_client(get_settings())
+    try:
+        await redis_client.ping()
+        app.state.redis_client = redis_client
+        yield
+    finally:
+        try:
+            await redis_client.aclose()
+        finally:
+            await engine.dispose()
 
 
 def create_app() -> FastAPI:

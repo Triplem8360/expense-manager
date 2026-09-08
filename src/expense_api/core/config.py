@@ -3,6 +3,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import (
     Field,
+    RedisDsn,
     SecretStr,
     StringConstraints,
     field_validator,
@@ -57,6 +58,32 @@ class Settings(DatabaseSettings):
         min_length=1,
         pattern=r"^[a-z][a-z0-9_]*$",
         validation_alias="TRANSLATION_DOMAIN",
+    )
+
+    redis_url: RedisDsn = Field(validation_alias="REDIS_URL")
+    redis_max_connections: int = Field(
+        default=20,
+        ge=1,
+        le=200,
+        validation_alias="REDIS_MAX_CONNECTIONS",
+    )
+    redis_connect_timeout_seconds: float = Field(
+        default=2.0,
+        gt=0,
+        le=30,
+        validation_alias="REDIS_CONNECT_TIMEOUT_SECONDS",
+    )
+    redis_socket_timeout_seconds: float = Field(
+        default=2.0,
+        gt=0,
+        le=30,
+        validation_alias="REDIS_SOCKET_TIMEOUT_SECONDS",
+    )
+    redis_health_check_interval_seconds: int = Field(
+        default=30,
+        ge=0,
+        le=300,
+        validation_alias="REDIS_HEALTH_CHECK_INTERVAL_SECONDS",
     )
 
     jwt_secret_key: SecretStr = Field(

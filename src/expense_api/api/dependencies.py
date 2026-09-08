@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import Depends, Header, Query, Request
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from expense_api.api.cookies import validate_csrf_request
@@ -102,6 +103,16 @@ def get_request_translator(
     return catalog.get_translator(locale)
 
 
+def get_redis_client(request: Request) -> Redis:
+    try:
+        redis_client = request.app.state.redis_client
+    except AttributeError as exc:
+        raise RuntimeError(
+            "Redis client is unavailable outside the application lifespan"
+        ) from exc
+    return cast(Redis, redis_client)
+
+
 async def get_current_user(
     request: Request,
     service: AuthServiceDependency,
@@ -128,3 +139,4 @@ PaymentMethodServiceDependency = Annotated[
 ]
 CurrentUserDependency = Annotated[UserModel, Depends(get_current_user)]
 TranslatorDependency = Annotated[Translator, Depends(get_request_translator)]
+RedisClientDependency = Annotated[Redis, Depends(get_redis_client)]
