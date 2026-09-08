@@ -178,8 +178,7 @@ def enforce_load_test_thresholds(
         failures.append("no requests were executed")
     if stats.fail_ratio > max_failure_ratio:
         failures.append(
-            f"failure ratio {stats.fail_ratio:.2%} exceeded "
-            f"{max_failure_ratio:.2%}"
+            f"failure ratio {stats.fail_ratio:.2%} exceeded {max_failure_ratio:.2%}"
         )
     if stats.avg_response_time > max_average_ms:
         failures.append(
@@ -188,8 +187,7 @@ def enforce_load_test_thresholds(
         )
     if p95_response_time > max_p95_ms:
         failures.append(
-            f"p95 response time {p95_response_time:.0f} ms exceeded "
-            f"{max_p95_ms:.0f} ms"
+            f"p95 response time {p95_response_time:.0f} ms exceeded {max_p95_ms:.0f} ms"
         )
 
     if failures:

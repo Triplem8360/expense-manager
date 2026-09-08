@@ -17,7 +17,7 @@ WORKDIR /app
 # Install production dependencies first to maximize Docker layer caching.
 COPY pyproject.toml uv.lock ./
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
     uv sync \
         --locked \
         --no-dev \
