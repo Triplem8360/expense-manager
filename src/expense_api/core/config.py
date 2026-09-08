@@ -18,6 +18,15 @@ LocaleCode = Annotated[
         pattern=r"^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
     ),
 ]
+CacheKeyPrefix = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9:_-]*$",
+    ),
+]
 
 
 class DatabaseSettings(BaseSettings):
@@ -84,6 +93,16 @@ class Settings(DatabaseSettings):
         ge=0,
         le=300,
         validation_alias="REDIS_HEALTH_CHECK_INTERVAL_SECONDS",
+    )
+    cache_key_prefix: CacheKeyPrefix = Field(
+        default="expense-manager",
+        validation_alias="CACHE_KEY_PREFIX",
+    )
+    expense_cache_ttl_seconds: int = Field(
+        default=300,
+        ge=30,
+        le=3_600,
+        validation_alias="EXPENSE_CACHE_TTL_SECONDS",
     )
 
     jwt_secret_key: SecretStr = Field(

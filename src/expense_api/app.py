@@ -1,7 +1,9 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from redis.exceptions import RedisError
 
 from expense_api.api.exception_handlers import (
     authentication_error_handler,
@@ -23,13 +25,22 @@ from expense_api.exceptions import (
     UserAlreadyExistsError,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     redis_client = create_redis_client(get_settings())
+    app.state.redis_client = redis_client
     try:
-        await redis_client.ping()
-        app.state.redis_client = redis_client
+        try:
+            await redis_client.ping()
+        except RedisError:
+            logger.warning(
+                "Redis is unavailable during startup; cache will use PostgreSQL "
+                "fallback",
+                exc_info=True,
+            )
         yield
     finally:
         try:

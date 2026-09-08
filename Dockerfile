@@ -6,7 +6,6 @@ ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim-bookworm AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /uvx /bin/
-# COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /uvx /bin/
 
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_COMPILE_BYTECODE=1 \
@@ -24,23 +23,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         --no-dev \
         --no-install-project
 
-# Copy application and migration sources.
-COPY src ./src
-COPY alembic ./alembic
-COPY alembic.ini ./
-
-# Install the application itself as a non-editable package.
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync \
-        --locked \
-        --no-dev \
-        --no-editable
-
-
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 
 ENV VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:${PATH}" \
+    PYTHONPATH=/app/src \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -56,8 +43,9 @@ RUN groupadd --system --gid 10001 expense-api \
 WORKDIR /app
 
 COPY --from=builder --chown=expense-api:expense-api /opt/venv /opt/venv
-COPY --from=builder --chown=expense-api:expense-api /app/alembic /app/alembic
-COPY --from=builder --chown=expense-api:expense-api /app/alembic.ini /app/alembic.ini
+COPY --chown=expense-api:expense-api src /app/src
+COPY --chown=expense-api:expense-api alembic /app/alembic
+COPY --chown=expense-api:expense-api alembic.ini /app/alembic.ini
 
 USER expense-api
 

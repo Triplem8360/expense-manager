@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from expense_api.api.cookies import validate_csrf_request
 from expense_api.api.language import resolve_request_locale
+from expense_api.cache import ExpenseCache
 from expense_api.core.config import Settings, get_settings
 from expense_api.core.localization import (
     TranslationCatalog,
@@ -58,10 +59,22 @@ def get_expense_repository(
     return ExpenseRepository(session)
 
 
+def get_expense_cache(
+    client: RedisClientDependency,
+    settings: SettingsDependency,
+) -> ExpenseCache:
+    return ExpenseCache(
+        client,
+        key_prefix=settings.cache_key_prefix,
+        ttl_seconds=settings.expense_cache_ttl_seconds,
+    )
+
+
 def get_expense_service(
     repository: Annotated[ExpenseRepository, Depends(get_expense_repository)],
+    cache: ExpenseCacheDependency,
 ) -> ExpenseService:
-    return ExpenseService(repository)
+    return ExpenseService(repository, cache)
 
 
 def get_payment_method_repository(
@@ -133,6 +146,7 @@ SettingsDependency = Annotated[Settings, Depends(get_settings)]
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 CategoryServiceDependency = Annotated[CategoryService, Depends(get_category_service)]
 ExpenseServiceDependency = Annotated[ExpenseService, Depends(get_expense_service)]
+ExpenseCacheDependency = Annotated[ExpenseCache, Depends(get_expense_cache)]
 PaymentMethodServiceDependency = Annotated[
     PaymentMethodService,
     Depends(get_payment_method_service),
